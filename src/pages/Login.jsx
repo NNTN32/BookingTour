@@ -26,7 +26,7 @@ export default function Login() {
             });
             
             // Handle successful login
-            if (response.data.success) {
+            if (response.data.state) {
                 // Use the login function from AuthContext
                 const decodedToken = login(response.data.token);
                 

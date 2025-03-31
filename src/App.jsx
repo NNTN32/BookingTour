@@ -12,6 +12,7 @@ import Visit from "./pages/Tour/Visit";
 import ProtectedRoute from "./components/ProtectedRoute";
 import TourDetail from "./pages/Tour/TourDetail";
 import CreateTour from './pages/Admin/CreateTour';
+import Order from './pages/Order';
 
 function App() {
   return (
@@ -27,6 +28,14 @@ function App() {
           <Route path="/visit" element={<Visit />} />
           <Route path="/tour/:id" element={<TourDetail />} />
           <Route path="/admin/create-tour" element={<CreateTour />} />
+          <Route 
+            path="/order" 
+            element={
+              <ProtectedRoute>
+                <Order />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
         <Footer />
       </BrowserRouter>

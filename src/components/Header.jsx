@@ -6,10 +6,26 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../context/AuthContext";
+import axiosInstance from '../utils/axiosConfig';
 
 export default function Header() {
   const { user, isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
+  const [orderCount, setOrderCount] = useState(0);
+
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      const fetchOrderCount = async () => {
+        try {
+          const response = await axiosInstance.get('/order/all-orders');
+          setOrderCount(response.data.data.length);
+        } catch (error) {
+          console.error('Failed to fetch order count:', error);
+        }
+      };
+      fetchOrderCount();
+    }
+  }, [isLoggedIn, user]);
 
   const handleLogout = () => {
     logout();
@@ -168,7 +184,7 @@ export default function Header() {
                 {[
                   { path: "/", label: "Trang Chủ", icon: null },
                   { path: "/visit", label: "Tours", icon: <FaRegCalendarAlt /> },
-                  { path: "/search", label: "Tìm Kiếm", icon: <FaSearch /> },
+                  { path: "/order", label: "Orders", icon: <FaSearch />, badge: isLoggedIn ? orderCount : null },
                   { path: "/about", label: "Giới Thiệu", icon: <IoMdHelpCircleOutline /> }
                 ].map((link, index) => (
                   <motion.div
@@ -179,7 +195,7 @@ export default function Header() {
                     <NavLink 
                       to={link.path} 
                       className={({ isActive }) => 
-                        `flex items-center space-x-1 text-base font-medium transition duration-300 
+                        `flex items-center space-x-1 text-base font-medium transition duration-300 relative
                         ${isActive 
                           ? "text-blue-600 border-b-2 border-blue-600" 
                           : "hover:text-blue-600"}`
@@ -187,6 +203,11 @@ export default function Header() {
                     >
                       {link.icon && <span className="text-lg">{link.icon}</span>}
                       <span>{link.label}</span>
+                      {link.badge && (
+                        <span className="absolute -top-3 -right-3 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                          {link.badge}
+                        </span>
+                      )}
                     </NavLink>
                   </motion.div>
                 ))}
