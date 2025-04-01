@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
-import { FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaSpinner, FaCheck, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import axios from 'axios';
 
 // Thêm các animation variants cho Framer Motion
@@ -25,6 +25,9 @@ export default function Admin() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentTour, setCurrentTour] = useState(null);
   const [selectedTour, setSelectedTour] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const toursPerPage = 4;
   
   // Form state for creating/editing tour
   const [formData, setFormData] = useState({
@@ -63,7 +66,7 @@ export default function Admin() {
 
   const fetchTourTypes = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/tour/get-all-type-tour');
+      const response = await axios.get('http://localhost:3000/api/typetour/getall_type');
       if (response.data.state) {
         setTourTypes(response.data.data);
       } else {
@@ -131,8 +134,9 @@ export default function Admin() {
 
       if (response.data.state) {
         setShowCreateModal(false);
-        fetchTours(); // Refresh the tours list
-        alert('Tour created successfully!');
+        fetchTours();
+        setShowSuccessModal(true); // Show success modal
+        setTimeout(() => setShowSuccessModal(false), 2000); // Hide after 2 seconds
       } else {
         alert(response.data.message || 'Failed to create tour');
       }
@@ -236,6 +240,12 @@ export default function Admin() {
     }
   };
 
+  // Calculate pagination
+  const indexOfLastTour = currentPage * toursPerPage;
+  const indexOfFirstTour = indexOfLastTour - toursPerPage;
+  const currentTours = tours.slice(indexOfFirstTour, indexOfLastTour);
+  const totalPages = Math.ceil(tours.length / toursPerPage);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pl-64 pt-20">
       <div className="container mx-auto p-6">
@@ -326,7 +336,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {tours.map((tour) => (
+                      {currentTours.map((tour) => (
                         <motion.tr 
                           key={tour.id}
                           initial={{ opacity: 0 }}
@@ -380,6 +390,27 @@ export default function Admin() {
                       ))}
                     </tbody>
                   </table>
+
+                  {/* Pagination Controls */}
+                  <div className="flex justify-center items-center space-x-4 mt-6">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`p-2 rounded-full ${currentPage === 1 ? 'text-gray-400' : 'text-blue-600 hover:bg-blue-100'}`}
+                    >
+                      <FaChevronLeft />
+                    </button>
+                    <span className="text-gray-700">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className={`p-2 rounded-full ${currentPage === totalPages ? 'text-gray-400' : 'text-blue-600 hover:bg-blue-100'}`}
+                    >
+                      <FaChevronRight />
+                    </button>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -722,6 +753,26 @@ export default function Admin() {
         </form>
       </motion.div>
     </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5 }}
+          className="fixed top-4 right-4 bg-white rounded-lg shadow-xl p-4 flex items-center space-x-3 z-50"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center"
+          >
+            <FaCheck className="text-white" />
+          </motion.div>
+          <p className="text-gray-800 font-medium">Tour created successfully!</p>
+        </motion.div>
       )}
     </div>
   );

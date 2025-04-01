@@ -76,7 +76,7 @@ export default function Header() {
                 }
               >
                 <FaPlus className="text-xl" />
-                <span>Create Tour</span>
+                <span>Create Detail Tour</span>
               </NavLink>
             </div>
           </nav>
