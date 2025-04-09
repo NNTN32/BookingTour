@@ -36,7 +36,6 @@ export default function Main() {
             title: tour.name,
             location: `${tour.startplace} - ${tour.endplace}`,
             duration: `${tour.day_number} ngày ${tour.night_number} đêm`,
-            price: `${(Math.random() * 5000000 + 1000000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}₫`, // Giá demo
             people: `2-${Math.floor(Math.random() * 15 + 5)} người`, // Số người demo
             category: getCategoryFromTourType(tour.tyoftour_name || tour.typeoftours_id),
             featured: index < 3, // 3 tour đầu sẽ được đánh dấu là featured
@@ -216,7 +215,7 @@ export default function Main() {
       </div>
       
       {/* Search Section */}
-      <div className="bg-white py-8 shadow-lg relative z-10">
+      {/* <div className="bg-white py-8 shadow-lg relative z-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="bg-white rounded-xl shadow-xl p-6 -mt-24 relative z-20">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Tìm kiếm tour du lịch</h2>
@@ -277,7 +276,7 @@ export default function Main() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
       
       {/* Featured Tours Section */}
       <section className="py-16 px-4">

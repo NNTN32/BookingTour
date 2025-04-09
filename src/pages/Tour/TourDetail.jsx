@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FaMapMarkerAlt, FaClock, FaCalendarAlt, FaUsers, FaDollarSign, FaInfoCircle } from 'react-icons/fa';
-import axiosInstance from '../../utils/axiosConfig';//cấu hình sẵn base Url 'http://localhost:3000/api'
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaMapMarkerAlt, FaClock, FaCalendarAlt, FaUsers, FaDollarSign, FaInfoCircle, FaCheck } from 'react-icons/fa';
+import axiosInstance from '../../utils/axiosConfig';
 
-// Hàm decode JWT token
+
 const decodeToken = (token) => {
   try {
     const base64Url = token.split('.')[1];
@@ -32,6 +32,8 @@ const TourDetail = () => {
     totalprice: 0
   });
   const [orderError, setOrderError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   console.log("Tour ID from URL params:", id);
 
@@ -68,8 +70,8 @@ const TourDetail = () => {
   const handleOrderSubmit = async (e) => {
     e.preventDefault();
     setOrderError(null);
+    setIsSubmitting(true);
 
-    // Check if user is logged in
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login', { 
@@ -79,33 +81,35 @@ const TourDetail = () => {
     }
 
     try {
-      // Decode token to get user information
       const decodedToken = decodeToken(token);
       if (!decodedToken || !decodedToken.id) {
         throw new Error('Invalid token or user information not found');
       }
 
       const orderData = {
-        typeoforderid: 1, // Default to 1, adjust based on your business logic
-        user_id: decodedToken.id, // Get user ID from decoded token
+        typeoforderid: 1,
+        user_id: decodedToken.id,
         numberpeople: orderForm.numberpeople,
         totalprice: orderForm.totalprice,
         detailtour_id: selectedDetailTour.id
       };
 
-      console.log('Order data being sent:', orderData); // For debugging
-
       const response = await axiosInstance.post('/order/create-order', orderData);
       
       if (response.data.success) {
-        alert('Đặt tour thành công!');
-        navigate('/my-orders');
+        setShowSuccessModal(true);
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          navigate('/my-orders');
+        }, 5000);
       } else {
         setOrderError(response.data.message || 'Có lỗi xảy ra khi đặt tour');
       }
     } catch (err) {
       console.error('Error creating order:', err);
       setOrderError(err.response?.data?.message || 'Có lỗi xảy ra khi đặt tour');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -139,6 +143,42 @@ const TourDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
+      <AnimatePresence>
+        {showSuccessModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+              >
+                <FaCheck className="text-green-500 text-4xl" />
+              </motion.div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Đặt Tour Thành Công!</h2>
+              <p className="text-gray-600 mb-6">Cảm ơn bạn đã đặt tour. Chúng tôi sẽ liên hệ với bạn sớm.</p>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 5, ease: "linear" }}
+                className="h-2 bg-green-500 rounded-full"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {tourDetails && (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -319,14 +359,23 @@ const TourDetail = () => {
                       type="button"
                       onClick={() => setShowOrderForm(false)}
                       className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-4 px-6 rounded-lg font-semibold text-lg transition-colors duration-300"
+                      disabled={isSubmitting}
                     >
                       Hủy
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg transition-colors duration-300"
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg transition-colors duration-300 flex items-center justify-center"
+                      disabled={isSubmitting}
                     >
-                      Xác nhận đặt tour
+                      {isSubmitting ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                          Đang xử lý...
+                        </div>
+                      ) : (
+                        'Xác nhận đặt tour'
+                      )}
                     </button>
                   </div>
                 </form>

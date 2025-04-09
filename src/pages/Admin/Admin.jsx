@@ -379,12 +379,12 @@ export default function Admin() {
                             >
                               {tour.status === 'active' ? 'Deactivate' : 'Activate'}
                             </button>
-                            <button
+                            {/* <button
                               onClick={() => handleDeleteTour(tour.id)}
                               className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-md text-sm font-medium hover:bg-red-200"
                             >
                               Delete
-                            </button>
+                            </button> */}
                           </td>
                         </motion.tr>
                       ))}
@@ -424,7 +424,7 @@ export default function Admin() {
               transition={{ duration: 0.3 }}
             >
               <h2 className="text-2xl font-semibold text-gray-700 mb-6">Quản lý Users</h2>
-              <p className="text-gray-600">Tính năng đang được phát triển...</p>
+              {/* <p className="text-gray-600">Tính năng đang được phát triển...</p> */}
             </motion.div>
           )}
 

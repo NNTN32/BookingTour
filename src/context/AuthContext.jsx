@@ -7,25 +7,54 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const checkTokenExpiration = (token) => {
+    try {
+      const decodedToken = jwtDecode(token);
+      const currentTime = Date.now() / 1000;
+      return decodedToken.exp > currentTime;
+    } catch (error) {
+      return false;
+    }
+  };
+
   useEffect(() => {
     // Check if user is logged in on page load/refresh
     const token = localStorage.getItem("token");
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
-        setUser({
-          username: decodedToken.username,
-          userType: decodedToken.userType
-        });
-        setIsLoggedIn(true);
+        if (checkTokenExpiration(token)) {
+          setUser({
+            username: decodedToken.username,
+            userType: decodedToken.userType
+          });
+          setIsLoggedIn(true);
+        } else {
+          logout();
+        }
       } catch (error) {
         console.error("Invalid token:", error);
-        localStorage.removeItem("token");
+        logout();
       }
     }
   }, []);
 
+  useEffect(() => {
+    // Set up interval to check token expiration every minute
+    const interval = setInterval(() => {
+      const token = localStorage.getItem("token");
+      if (token && !checkTokenExpiration(token)) {
+        logout();
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
   const login = (token) => {
+    if (!checkTokenExpiration(token)) {
+      throw new Error("Token is expired");
+    }
     localStorage.setItem("token", token);
     const decodedToken = jwtDecode(token);
     setUser({
